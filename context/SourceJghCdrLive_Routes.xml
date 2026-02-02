@@ -1,0 +1,1011 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes xmlns="http://camel.apache.org/schema/spring">
+    <!-- Organization Live Processor -->
+    <route id="kafkaOrganizationLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.organization?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processOrganizationLiveBundleMessage"/>
+    </route>
+
+    <route id="processOrganizationLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueOrganizationLive"/>
+        </onException>
+        <from uri="direct:processOrganizationLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueOrganizationLive">
+        <from uri="direct:failureQueueOrganizationLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.organization.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueOrganizationLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.organization.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.organization.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Location Live Processor -->
+    <route id="kafkaLocationLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.location?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processLocationLiveBundleMessage"/>
+    </route>
+
+    <route id="processLocationLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueLocationLive"/>
+        </onException>
+        <from uri="direct:processLocationLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueLocationLive">
+        <from uri="direct:failureQueueLocationLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.location.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueLocationLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.location.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.location.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- StructureDefinition Live Processor -->
+    <route id="kafkaStructureDefinitionLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.structuredefinition?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processStructureDefinitionLiveBundleMessage"/>
+    </route>
+
+    <route id="processStructureDefinitionLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueStructureDefinitionLive"/>
+        </onException>
+        <from uri="direct:processStructureDefinitionLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueStructureDefinitionLive">
+        <from uri="direct:failureQueueStructureDefinitionLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.structuredefinition.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueStructureDefinitionLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.structuredefinition.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.structuredefinition.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- OperationDefinition Live Processor -->
+    <route id="kafkaOperationDefinitionLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.operationdefinition?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processOperationDefinitionLiveBundleMessage"/>
+    </route>
+
+    <route id="processOperationDefinitionLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueOperationDefinitionLive"/>
+        </onException>
+        <from uri="direct:processOperationDefinitionLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueOperationDefinitionLive">
+        <from uri="direct:failureQueueOperationDefinitionLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.operationdefinition.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueOperationDefinitionLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.operationdefinition.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.operationdefinition.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- CompartmentDefinition Live Processor -->
+    <route id="kafkaCompartmentDefinitionLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.compartmentdefinition?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processCompartmentDefinitionLiveBundleMessage"/>
+    </route>
+
+    <route id="processCompartmentDefinitionLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueCompartmentDefinitionLive"/>
+        </onException>
+        <from uri="direct:processCompartmentDefinitionLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueCompartmentDefinitionLive">
+        <from uri="direct:failureQueueCompartmentDefinitionLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.compartmentdefinition.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueCompartmentDefinitionLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.compartmentdefinition.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.compartmentdefinition.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Practitioner Live Processor -->
+    <route id="kafkaPractitionerLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.practitioner?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processPractitionerLiveBundleMessage"/>
+    </route>
+
+    <route id="processPractitionerLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueuePractitionerLive"/>
+        </onException>
+        <from uri="direct:processPractitionerLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueuePractitionerLive">
+        <from uri="direct:failureQueuePractitionerLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.practitioner.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueuePractitionerLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.practitioner.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.practitioner.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- PractitionerRole Live Processor -->
+    <route id="kafkaPractitionerRoleLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.practitionerrole?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processPractitionerRoleLiveBundleMessage"/>
+    </route>
+
+    <route id="processPractitionerRoleLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueuePractitionerRoleLive"/>
+        </onException>
+        <from uri="direct:processPractitionerRoleLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueuePractitionerRoleLive">
+        <from uri="direct:failureQueuePractitionerRoleLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.practitionerrole.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueuePractitionerRoleLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.practitionerrole.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.practitionerrole.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Questionnaire Live Processor -->
+    <route id="kafkaQuestionnaireLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.questionnaire?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processQuestionnaireLiveBundleMessage"/>
+    </route>
+
+    <route id="processQuestionnaireLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueQuestionnaireLive"/>
+        </onException>
+        <from uri="direct:processQuestionnaireLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueQuestionnaireLive">
+        <from uri="direct:failureQueueQuestionnaireLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.questionnaire.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueQuestionnaireLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.questionnaire.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.questionnaire.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Patient Live Processor -->
+    <route id="kafkaPatientLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.patient?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processPatientLiveBundleMessage"/>
+    </route>
+
+    <route id="processPatientLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueuePatientLive"/>
+        </onException>
+        <from uri="direct:processPatientLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueuePatientLive">
+        <from uri="direct:failureQueuePatientLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.patient.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueuePatientLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.patient.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.patient.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- RelatedPerson Live Processor -->
+    <route id="kafkaRelatedPersonLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.relatedperson?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processRelatedPersonLiveBundleMessage"/>
+    </route>
+
+    <route id="processRelatedPersonLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueRelatedPersonLive"/>
+        </onException>
+        <from uri="direct:processRelatedPersonLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueRelatedPersonLive">
+        <from uri="direct:failureQueueRelatedPersonLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.relatedperson.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueRelatedPersonLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.relatedperson.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.relatedperson.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Coverage Live Processor -->
+    <route id="kafkaCoverageLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.coverage?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processCoverageLiveBundleMessage"/>
+    </route>
+
+    <route id="processCoverageLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueCoverageLive"/>
+        </onException>
+        <from uri="direct:processCoverageLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueCoverageLive">
+        <from uri="direct:failureQueueCoverageLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.coverage.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueCoverageLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.coverage.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.coverage.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Account Live Processor -->
+    <route id="kafkaAccountLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.account?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processAccountLiveBundleMessage"/>
+    </route>
+
+    <route id="processAccountLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueAccountLive"/>
+        </onException>
+        <from uri="direct:processAccountLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueAccountLive">
+        <from uri="direct:failureQueueAccountLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.account.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueAccountLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.account.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.account.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Encounter Live Processor -->
+    <route id="kafkaEncounterLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.encounter?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processEncounterLiveBundleMessage"/>
+    </route>
+
+    <route id="processEncounterLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueEncounterLive"/>
+        </onException>
+        <from uri="direct:processEncounterLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueEncounterLive">
+        <from uri="direct:failureQueueEncounterLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.encounter.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueEncounterLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.encounter.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.encounter.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- HealthcareService Live Processor -->
+    <route id="kafkaHealthcareServiceLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.healthcareservice?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processHealthcareServiceLiveBundleMessage"/>
+    </route>
+
+    <route id="processHealthcareServiceLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueHealthcareServiceLive"/>
+        </onException>
+        <from uri="direct:processHealthcareServiceLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueHealthcareServiceLive">
+        <from uri="direct:failureQueueHealthcareServiceLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.healthcareservice.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueHealthcareServiceLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.healthcareservice.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.healthcareservice.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Appointment Live Processor -->
+    <route id="kafkaAppointmentLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.appointment?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processAppointmentLiveBundleMessage"/>
+    </route>
+
+    <route id="processAppointmentLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueAppointmentLive"/>
+        </onException>
+        <from uri="direct:processAppointmentLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueAppointmentLive">
+        <from uri="direct:failureQueueAppointmentLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.appointment.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueAppointmentLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.appointment.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.appointment.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- ServiceRequest Live Processor -->
+    <route id="kafkaServiceRequestLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.servicerequest?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processServiceRequestLiveBundleMessage"/>
+    </route>
+
+    <route id="processServiceRequestLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueServiceRequestLive"/>
+        </onException>
+        <from uri="direct:processServiceRequestLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueServiceRequestLive">
+        <from uri="direct:failureQueueServiceRequestLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.servicerequest.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueServiceRequestLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.servicerequest.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.servicerequest.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Specimen Live Processor -->
+    <route id="kafkaSpecimenLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.specimen?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processSpecimenLiveBundleMessage"/>
+    </route>
+
+    <route id="processSpecimenLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueSpecimenLive"/>
+        </onException>
+        <from uri="direct:processSpecimenLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueSpecimenLive">
+        <from uri="direct:failureQueueSpecimenLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.specimen.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueSpecimenLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.specimen.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.specimen.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Observation Live Processor -->
+    <route id="kafkaObservationLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.observation?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processObservationLiveBundleMessage"/>
+    </route>
+
+    <route id="processObservationLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueObservationLive"/>
+        </onException>
+        <from uri="direct:processObservationLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueObservationLive">
+        <from uri="direct:failureQueueObservationLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.observation.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueObservationLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.observation.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.observation.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- ImagingStudy Live Processor -->
+    <route id="kafkaImagingStudyLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.imagingstudy?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processImagingStudyLiveBundleMessage"/>
+    </route>
+
+    <route id="processImagingStudyLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueImagingStudyLive"/>
+        </onException>
+        <from uri="direct:processImagingStudyLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueImagingStudyLive">
+        <from uri="direct:failureQueueImagingStudyLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.imagingstudy.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueImagingStudyLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.imagingstudy.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.imagingstudy.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- DocumentReference Live Processor -->
+    <route id="kafkaDocumentReferenceLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.documentreference?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processDocumentReferenceLiveBundleMessage"/>
+    </route>
+
+    <route id="processDocumentReferenceLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueDocumentReferenceLive"/>
+        </onException>
+        <from uri="direct:processDocumentReferenceLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueDocumentReferenceLive">
+        <from uri="direct:failureQueueDocumentReferenceLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.documentreference.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueDocumentReferenceLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.documentreference.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.documentreference.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- DiagnosticReport Live Processor -->
+    <route id="kafkaDiagnosticReportLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.diagnosticreport?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processDiagnosticReportLiveBundleMessage"/>
+    </route>
+
+    <route id="processDiagnosticReportLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueDiagnosticReportLive"/>
+        </onException>
+        <from uri="direct:processDiagnosticReportLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueDiagnosticReportLive">
+        <from uri="direct:failureQueueDiagnosticReportLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.diagnosticreport.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueDiagnosticReportLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.diagnosticreport.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.diagnosticreport.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Medication Live Processor -->
+    <route id="kafkaMedicationLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.medication?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processMedicationLiveBundleMessage"/>
+    </route>
+
+    <route id="processMedicationLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueMedicationLive"/>
+        </onException>
+        <from uri="direct:processMedicationLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueMedicationLive">
+        <from uri="direct:failureQueueMedicationLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.medication.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueMedicationLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.medication.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.medication.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- MedicationKnowledge Live Processor -->
+    <route id="kafkaMedicationKnowledgeLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.medicationknowledge?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processMedicationKnowledgeLiveBundleMessage"/>
+    </route>
+
+    <route id="processMedicationKnowledgeLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueMedicationKnowledgeLive"/>
+        </onException>
+        <from uri="direct:processMedicationKnowledgeLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueMedicationKnowledgeLive">
+        <from uri="direct:failureQueueMedicationKnowledgeLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.medicationknowledge.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueMedicationKnowledgeLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.medicationknowledge.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.medicationknowledge.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- ActivityDefinition Live Processor -->
+    <route id="kafkaActivityDefinitionLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.activitydefinition?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processActivityDefinitionLiveBundleMessage"/>
+    </route>
+
+    <route id="processActivityDefinitionLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueActivityDefinitionLive"/>
+        </onException>
+        <from uri="direct:processActivityDefinitionLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueActivityDefinitionLive">
+        <from uri="direct:failureQueueActivityDefinitionLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.activitydefinition.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueActivityDefinitionLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.activitydefinition.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.activitydefinition.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- PlanDefinition Live Processor -->
+    <route id="kafkaPlanDefinitionLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.plandefinition?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processPlanDefinitionLiveBundleMessage"/>
+    </route>
+
+    <route id="processPlanDefinitionLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueuePlanDefinitionLive"/>
+        </onException>
+        <from uri="direct:processPlanDefinitionLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueuePlanDefinitionLive">
+        <from uri="direct:failureQueuePlanDefinitionLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.plandefinition.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueuePlanDefinitionLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.plandefinition.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.plandefinition.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- List Live Processor -->
+    <route id="kafkaListLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.list?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processListLiveBundleMessage"/>
+    </route>
+
+    <route id="processListLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueListLive"/>
+        </onException>
+        <from uri="direct:processListLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueListLive">
+        <from uri="direct:failureQueueListLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.list.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueListLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.list.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.list.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- RequestGroup Live Processor -->
+    <route id="kafkaRequestGroupLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.requestgroup?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processRequestGroupLiveBundleMessage"/>
+    </route>
+
+    <route id="processRequestGroupLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueRequestGroupLive"/>
+        </onException>
+        <from uri="direct:processRequestGroupLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueRequestGroupLive">
+        <from uri="direct:failureQueueRequestGroupLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.requestgroup.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueRequestGroupLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.requestgroup.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.requestgroup.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Provenance Live Processor -->
+    <route id="kafkaProvenanceLiveProcessor">
+        <from uri="kafka:source.jgh.cdr.live.provenance?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processProvenanceLiveBundleMessage"/>
+    </route>
+
+    <route id="processProvenanceLiveBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueProvenanceLive"/>
+        </onException>
+        <from uri="direct:processProvenanceLiveBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueProvenanceLive">
+        <from uri="direct:failureQueueProvenanceLive"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.live.provenance.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueProvenanceLiveRetry">
+        <errorHandler>
+            <deadLetterChannel deadLetterUri="kafka:camel.cdr.live.provenance.dlq?brokers=kafka:9092">
+                <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+            </deadLetterChannel>
+        </errorHandler>
+        <from uri="kafka:camel.cdr.live.provenance.fail?brokers=kafka:9092&amp;groupId=smile-camel-shr-prod&amp;maxPollRecords=1&amp;allowManualCommit=true&amp;autoCommitEnable=false&amp;autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+</routes>

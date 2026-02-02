@@ -1,0 +1,11 @@
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+
+WORKDIR /home/smile/smilecdr
+
+COPY --chown=smile:smile ./cdr-config-Master.properties ./classes/cdr-config-Master.properties
+#COPY --chown=smile:smile ./SourceJghCdrLive_Routes.xml ./classes/SourceJghCdrLive_Routes.xml
+#COPY --chown=smile:smile ./SourceJGHCdrSeed_Routes.xml ./classes/SourceJGHCdrSeed_Routes.xml
+#COPY --chown=smile:smile ./cdr-camel-demoproject-1.0.jar ./customerlib/cdr-camel-demoproject-1.0.jar
+COPY --chown=smile:smile ./cdr-kafka-consumer-config.properties ./classes/cdr-kafka-consumer-config.properties
+COPY --chown=smile:smile ./cdr-kafka-producer-config.properties ./classes/cdr-kafka-producer-config.properties

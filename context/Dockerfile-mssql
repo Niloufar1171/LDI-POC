@@ -1,0 +1,17 @@
+FROM mcr.microsoft.com/mssql/server:latest
+
+#USER root
+# COPY ./entrypoint.sh /usr/src/app/entrypoint.sh
+# COPY ./setup.sql /usr/src/app/setup.sql
+# COPY ./setup.sh /usr/src/app/setup.sh
+# COPY ./rte-step1-ddl-script.sql /usr/src/app/rte-step1-ddl-script.sql
+# COPY ./rte-step2-ddl-triggers.sql /usr/src/app/rte-step2-ddl-triggers.sql
+# COPY ./rte-step3-ddl-functions.sql /usr/src/app/rte-step3-ddl-functions.sql
+# COPY ./rte-step4-TR_rteServiceRequest-FOR-INSERT.sql /usr/src/app/rte-step4-TR_rteServiceRequest-FOR-INSERT.sql
+# COPY ./rte-step5-TR_rteServiceRequest-FOR-UPDATE.sql /usr/src/app/rte-step5-TR_rteServiceRequest-FOR-UPDATE.sql
+# COPY ./rte-step6-Load-ReferenceData.sql /usr/src/app/rte-step6-Load-ReferenceData.sql
+
+# RUN chmod +x /usr/src/app/setup.sh
+
+# USER mssql
+# ENTRYPOINT /bin/bash ./usr/src/app/entrypoint.sh

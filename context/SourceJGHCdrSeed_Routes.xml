@@ -1,0 +1,1011 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes xmlns="http://camel.apache.org/schema/spring">
+    <!-- Organization Seed Processor -->
+    <route id="kafkaOrganizationSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.organization?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=1"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processOrganizationSeedBundleMessage"/>
+    </route>
+
+    <route id="processOrganizationSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueOrganizationSeed"/>
+        </onException>
+        <from uri="direct:processOrganizationSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueOrganizationSeed">
+        <from uri="direct:failureQueueOrganizationSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.organization.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueOrganizationSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.organization.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.organization.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Location Seed Processor -->
+    <route id="kafkaLocationSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.location?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=1"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processLocationSeedBundleMessage"/>
+    </route>
+
+    <route id="processLocationSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueLocationSeed"/>
+        </onException>
+        <from uri="direct:processLocationSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueLocationSeed">
+        <from uri="direct:failureQueueLocationSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.location.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueLocationSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.location.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.location.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- StructureDefinition Seed Processor -->
+    <route id="kafkaStructureDefinitionSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.structuredefinition?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=1"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processStructureDefinitionSeedBundleMessage"/>
+    </route>
+
+    <route id="processStructureDefinitionSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueStructureDefinitionSeed"/>
+        </onException>
+        <from uri="direct:processStructureDefinitionSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueStructureDefinitionSeed">
+        <from uri="direct:failureQueueStructureDefinitionSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.structuredefinition.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueStructureDefinitionSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.structuredefinition.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.structuredefinition.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- OperationDefinition Seed Processor -->
+    <route id="kafkaOperationDefinitionSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.operationdefinition?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=1"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processOperationDefinitionSeedBundleMessage"/>
+    </route>
+
+    <route id="processOperationDefinitionSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueOperationDefinitionSeed"/>
+        </onException>
+        <from uri="direct:processOperationDefinitionSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueOperationDefinitionSeed">
+        <from uri="direct:failureQueueOperationDefinitionSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.operationdefinition.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueOperationDefinitionSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.operationdefinition.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.operationdefinition.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- CompartmentDefinition Seed Processor -->
+    <route id="kafkaCompartmentDefinitionSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.compartmentdefinition?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=1"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processCompartmentDefinitionSeedBundleMessage"/>
+    </route>
+
+    <route id="processCompartmentDefinitionSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueCompartmentDefinitionSeed"/>
+        </onException>
+        <from uri="direct:processCompartmentDefinitionSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueCompartmentDefinitionSeed">
+        <from uri="direct:failureQueueCompartmentDefinitionSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.compartmentdefinition.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueCompartmentDefinitionSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.compartmentdefinition.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.compartmentdefinition.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Practitioner Seed Processor -->
+    <route id="kafkaPractitionerSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.practitioner?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=1"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processPractitionerSeedBundleMessage"/>
+    </route>
+
+    <route id="processPractitionerSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueuePractitionerSeed"/>
+        </onException>
+        <from uri="direct:processPractitionerSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueuePractitionerSeed">
+        <from uri="direct:failureQueuePractitionerSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.practitioner.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueuePractitionerSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.practitioner.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.practitioner.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- PractitionerRole Seed Processor -->
+    <route id="kafkaPractitionerRoleSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.practitionerrole?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=1"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processPractitionerRoleSeedBundleMessage"/>
+    </route>
+
+    <route id="processPractitionerRoleSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueuePractitionerRoleSeed"/>
+        </onException>
+        <from uri="direct:processPractitionerRoleSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueuePractitionerRoleSeed">
+        <from uri="direct:failureQueuePractitionerRoleSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.practitionerrole.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueuePractitionerRoleSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.practitionerrole.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.practitionerrole.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Questionnaire Seed Processor -->
+    <route id="kafkaQuestionnaireSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.questionnaire?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=1"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processQuestionnaireSeedBundleMessage"/>
+    </route>
+
+    <route id="processQuestionnaireSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueQuestionnaireSeed"/>
+        </onException>
+        <from uri="direct:processQuestionnaireSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueQuestionnaireSeed">
+        <from uri="direct:failureQueueQuestionnaireSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.questionnaire.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueQuestionnaireSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.questionnaire.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.questionnaire.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Patient Seed Processor -->
+    <route id="kafkaPatientSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.patient?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=5"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processPatientSeedBundleMessage"/>
+    </route>
+
+    <route id="processPatientSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueuePatientSeed"/>
+        </onException>
+        <from uri="direct:processPatientSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueuePatientSeed">
+        <from uri="direct:failureQueuePatientSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.patient.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueuePatientSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.patient.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.patient.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- RelatedPerson Seed Processor -->
+    <route id="kafkaRelatedPersonSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.relatedperson?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=1"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processRelatedPersonSeedBundleMessage"/>
+    </route>
+
+    <route id="processRelatedPersonSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueRelatedPersonSeed"/>
+        </onException>
+        <from uri="direct:processRelatedPersonSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueRelatedPersonSeed">
+        <from uri="direct:failureQueueRelatedPersonSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.relatedperson.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueRelatedPersonSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.relatedperson.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.relatedperson.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Coverage Seed Processor -->
+    <route id="kafkaCoverageSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.coverage?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=5"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processCoverageSeedBundleMessage"/>
+    </route>
+
+    <route id="processCoverageSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueCoverageSeed"/>
+        </onException>
+        <from uri="direct:processCoverageSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueCoverageSeed">
+        <from uri="direct:failureQueueCoverageSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.coverage.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueCoverageSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.coverage.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.coverage.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Account Seed Processor -->
+    <route id="kafkaAccountSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.account?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=1"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processAccountSeedBundleMessage"/>
+    </route>
+
+    <route id="processAccountSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueAccountSeed"/>
+        </onException>
+        <from uri="direct:processAccountSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueAccountSeed">
+        <from uri="direct:failureQueueAccountSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.account.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueAccountSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.account.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.account.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Encounter Seed Processor -->
+    <route id="kafkaEncounterSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.encounter?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=500%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=5"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processEncounterSeedBundleMessage"/>
+    </route>
+
+    <route id="processEncounterSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueEncounterSeed"/>
+        </onException>
+        <from uri="direct:processEncounterSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueEncounterSeed">
+        <from uri="direct:failureQueueEncounterSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.encounter.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueEncounterSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.encounter.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.encounter.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- HealthcareService Seed Processor -->
+    <route id="kafkaHealthcareServiceSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.healthcareservice?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=1"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processHealthcareServiceSeedBundleMessage"/>
+    </route>
+
+    <route id="processHealthcareServiceSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueHealthcareServiceSeed"/>
+        </onException>
+        <from uri="direct:processHealthcareServiceSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueHealthcareServiceSeed">
+        <from uri="direct:failureQueueHealthcareServiceSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.healthcareservice.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueHealthcareServiceSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.healthcareservice.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.healthcareservice.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Appointment Seed Processor -->
+    <route id="kafkaAppointmentSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.appointment?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=500%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=5"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processAppointmentSeedBundleMessage"/>
+    </route>
+
+    <route id="processAppointmentSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueAppointmentSeed"/>
+        </onException>
+        <from uri="direct:processAppointmentSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueAppointmentSeed">
+        <from uri="direct:failureQueueAppointmentSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.appointment.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueAppointmentSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.appointment.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.appointment.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- ServiceRequest Seed Processor -->
+    <route id="kafkaServiceRequestSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.servicerequest?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=500%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=5"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processServiceRequestSeedBundleMessage"/>
+    </route>
+
+    <route id="processServiceRequestSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueServiceRequestSeed"/>
+        </onException>
+        <from uri="direct:processServiceRequestSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueServiceRequestSeed">
+        <from uri="direct:failureQueueServiceRequestSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.servicerequest.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueServiceRequestSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.servicerequest.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.servicerequest.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Specimen Seed Processor -->
+    <route id="kafkaSpecimenSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.specimen?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=500%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=5"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processSpecimenSeedBundleMessage"/>
+    </route>
+
+    <route id="processSpecimenSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueSpecimenSeed"/>
+        </onException>
+        <from uri="direct:processSpecimenSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueSpecimenSeed">
+        <from uri="direct:failureQueueSpecimenSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.specimen.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueSpecimenSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.specimen.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.specimen.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Observation Seed Processor -->
+    <route id="kafkaObservationSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.observation?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=500%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=5"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processObservationSeedBundleMessage"/>
+    </route>
+
+    <route id="processObservationSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueObservationSeed"/>
+        </onException>
+        <from uri="direct:processObservationSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueObservationSeed">
+        <from uri="direct:failureQueueObservationSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.observation.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueObservationSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.observation.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.observation.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- ImagingStudy Seed Processor -->
+    <route id="kafkaImagingStudySeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.imagingstudy?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=500%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=5"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processImagingStudySeedBundleMessage"/>
+    </route>
+
+    <route id="processImagingStudySeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueImagingStudySeed"/>
+        </onException>
+        <from uri="direct:processImagingStudySeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueImagingStudySeed">
+        <from uri="direct:failureQueueImagingStudySeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.imagingstudy.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueImagingStudySeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.imagingstudy.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.imagingstudy.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- DocumentReference Seed Processor -->
+    <route id="kafkaDocumentReferenceSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.documentreference?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=500%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=5"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processDocumentReferenceSeedBundleMessage"/>
+    </route>
+
+    <route id="processDocumentReferenceSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueDocumentReferenceSeed"/>
+        </onException>
+        <from uri="direct:processDocumentReferenceSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueDocumentReferenceSeed">
+        <from uri="direct:failureQueueDocumentReferenceSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.documentreference.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueDocumentReferenceSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.documentreference.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.documentreference.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- DiagnosticReport Seed Processor -->
+    <route id="kafkaDiagnosticReportSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.diagnosticreport?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=500%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=5"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processDiagnosticReportSeedBundleMessage"/>
+    </route>
+
+    <route id="processDiagnosticReportSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueDiagnosticReportSeed"/>
+        </onException>
+        <from uri="direct:processDiagnosticReportSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=5&amp;retryDelayMin=200&amp;retryDelayMax=400"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueDiagnosticReportSeed">
+        <from uri="direct:failureQueueDiagnosticReportSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.diagnosticreport.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueDiagnosticReportSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.diagnosticreport.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.diagnosticreport.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Medication Seed Processor -->
+    <route id="kafkaMedicationSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.medication?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=1"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processMedicationSeedBundleMessage"/>
+    </route>
+
+    <route id="processMedicationSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueMedicationSeed"/>
+        </onException>
+        <from uri="direct:processMedicationSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueMedicationSeed">
+        <from uri="direct:failureQueueMedicationSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.medication.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueMedicationSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.medication.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.medication.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- MedicationKnowledge Seed Processor -->
+    <route id="kafkaMedicationKnowledgeSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.medicationknowledge?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=1"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processMedicationKnowledgeSeedBundleMessage"/>
+    </route>
+
+    <route id="processMedicationKnowledgeSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueMedicationKnowledgeSeed"/>
+        </onException>
+        <from uri="direct:processMedicationKnowledgeSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueMedicationKnowledgeSeed">
+        <from uri="direct:failureQueueMedicationKnowledgeSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.medicationknowledge.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueMedicationKnowledgeSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.medicationknowledge.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.medicationknowledge.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- ActivityDefinition Seed Processor -->
+    <route id="kafkaActivityDefinitionSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.activitydefinition?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=1"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processActivityDefinitionSeedBundleMessage"/>
+    </route>
+
+    <route id="processActivityDefinitionSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueActivityDefinitionSeed"/>
+        </onException>
+        <from uri="direct:processActivityDefinitionSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueActivityDefinitionSeed">
+        <from uri="direct:failureQueueActivityDefinitionSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.activitydefinition.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueActivityDefinitionSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.activitydefinition.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.activitydefinition.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- PlanDefinition Seed Processor -->
+    <route id="kafkaPlanDefinitionSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.plandefinition?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=1"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processPlanDefinitionSeedBundleMessage"/>
+    </route>
+
+    <route id="processPlanDefinitionSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueuePlanDefinitionSeed"/>
+        </onException>
+        <from uri="direct:processPlanDefinitionSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueuePlanDefinitionSeed">
+        <from uri="direct:failureQueuePlanDefinitionSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.plandefinition.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueuePlanDefinitionSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.plandefinition.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.plandefinition.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- List Seed Processor -->
+    <route id="kafkaListSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.list?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=1"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processListSeedBundleMessage"/>
+    </route>
+
+    <route id="processListSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueListSeed"/>
+        </onException>
+        <from uri="direct:processListSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueListSeed">
+        <from uri="direct:failureQueueListSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.list.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueListSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.list.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.list.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- RequestGroup Seed Processor -->
+    <route id="kafkaRequestGroupSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.requestgroup?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=1"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processRequestGroupSeedBundleMessage"/>
+    </route>
+
+    <route id="processRequestGroupSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueRequestGroupSeed"/>
+        </onException>
+        <from uri="direct:processRequestGroupSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueRequestGroupSeed">
+        <from uri="direct:failureQueueRequestGroupSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.requestgroup.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueRequestGroupSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.requestgroup.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.requestgroup.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+    <!-- Provenance Seed Processor -->
+    <route id="kafkaProvenanceSeedProcessor">
+        <from uri="kafka:source.jgh.cdr.seed.provenance?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest%26consumersCount=5"/>
+        <to uri="bean:testCustomProcessor"/>
+        <to uri="direct:processProvenanceSeedBundleMessage"/>
+    </route>
+
+    <route id="processProvenanceSeedBundleMessage">
+        <onException>
+            <exception>java.lang.Exception</exception>
+            <handled>
+                <constant>true</constant>
+            </handled>
+            <to uri="direct:failureQueueProvenanceSeed"/>
+        </onException>
+        <from uri="direct:processProvenanceSeedBundleMessage"/>
+        <to uri="smile:persistence/bundleProcessor?retries=3&amp;retryDelayMin=50&amp;retryDelayMax=100"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+
+    <route id="failureQueueProvenanceSeed">
+        <from uri="direct:failureQueueProvenanceSeed"/>
+        <log logName="ca.cdr.camel" message="Error processing Sending to Failure queue." loggingLevel="WARN"/>
+        <to uri="kafka:camel.cdr.seed.provenance.fail?brokers=kafka:9092"/>
+    </route>
+
+    <route id="failureQueueProvenanceSeedRetry">
+        <errorHandler>
+		    <deadLetterChannel deadLetterUri="kafka:camel.cdr.seed.provenance.dlq?brokers=kafka:9092">
+			    <redeliveryPolicy maximumRedeliveries="3" redeliveryDelay="250"/>
+		    </deadLetterChannel>
+	    </errorHandler>
+        <from uri="kafka:camel.cdr.seed.provenance.fail?brokers=kafka:9092%26groupId=smile-camel-shr-prod-seed%26maxPollRecords=1%26allowManualCommit=true%26autoCommitEnable=false%26autoOffsetReset=earliest"/>
+        <to uri="smile:persistence/bundleProcessor"/>
+        <to uri="smile:clustermgr/kafkaManualCommit" />
+    </route>
+</routes>
