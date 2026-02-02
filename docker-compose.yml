@@ -1,0 +1,65 @@
+services:
+  mssql:
+    image: mssql
+    container_name: mssql
+    build:
+      context: context
+      dockerfile: Dockerfile-mssql
+    ports:
+      - 1433:1433
+    environment:
+      - ACCEPT_EULA=y
+      - SA_PASSWORD=aSh8adeOfPur9le
+    volumes:
+      - ./mssql:/var/opt/mssql/data
+    restart: unless-stopped
+  kafka:
+    image: bitnamilegacy/kafka:3.7.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      # Kraft mode settings
+      KAFKA_ENABLE_KRAFT: yes
+      KAFKA_KRAFT_CLUSTER_ID: q1w2e3r4t5y6u7i8o9p0
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      # Listener configs
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      # Storage
+      KAFKA_CFG_LOG_DIRS: /bitnami/kafka/data
+      # Misc
+      ALLOW_PLAINTEXT_LISTENER: yes
+    volumes:
+      - ./kafka-data:/bitnami/kafka
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - 8081:8080
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+  smilecdr:
+    container_name: smilecdr
+    image: smilecdr
+    build:
+      context: context
+      dockerfile: ./Dockerfile-master
+      args:
+        - BASE_IMAGE=docker.smilecdr.com/smilecdr:2025.02.R01
+    depends_on:
+      - mssql
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+      - "8002:8002"
+      - "9000:9000"
+      - "9100:9100"
+      - "9200:9200"
